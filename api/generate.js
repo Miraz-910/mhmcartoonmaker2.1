@@ -14,23 +14,18 @@ export default async function handler(req, res) {
                 },
                 method: "POST",
                 body: JSON.stringify({ 
-                    inputs: prompt + ", 3d cartoon style, pixar character design" 
+                    inputs: prompt + ", 3d cartoon style, pixar character design, high resolution" 
                 }),
             }
         );
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error("Hugging Face Error:", errorText);
-            return res.status(response.status).send(errorText);
-        }
+        if (!response.ok) return res.status(response.status).send("Hugging Face API Error");
 
         const buffer = await response.arrayBuffer();
         res.setHeader('Content-Type', 'image/png');
         return res.send(Buffer.from(buffer));
 
     } catch (error) {
-        console.error("Server Error:", error.message);
         return res.status(500).json({ error: error.message });
     }
 }
