@@ -53,10 +53,15 @@
             outputSection.style.display = "none";
 
             try {
-                const response = await fetch("/api/generate.", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ prompt: prompt })
+                // index.html এর স্ক্রিপ্ট অংশে এটি আপডেট করুন
+const response = await fetch("/api/generate", {
+    method: "POST",
+    headers: { 
+        "Content-Type": "application/json",
+        "Accept": "application/json" 
+    },
+    body: JSON.stringify({ prompt: prompt })
+});
                 });
 
                 if (!response.ok) throw new Error("সার্ভার রেসপন্স দিচ্ছে না। আবার চেষ্টা করুন।");
