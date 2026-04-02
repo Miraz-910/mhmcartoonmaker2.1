@@ -3,73 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wan 2.1 AI Cartoon Maker</title>
+    <title>AI Cartoon Maker - Miraz</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1a1a2e; color: white; text-align: center; padding: 20px; }
-        .container { max-width: 700px; margin: auto; background: #16213e; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        input { width: 80%; padding: 12px; border-radius: 5px; border: none; outline: none; margin-bottom: 15px; font-size: 16px; }
-        button { background: #e94560; color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        button:hover { background: #ff2e63; }
-        #video-output { margin-top: 30px; display: none; }
-        video { width: 100%; border-radius: 10px; border: 2px solid #e94560; }
-        .loading { display: none; margin-top: 20px; color: #00d2ff; font-weight: bold; }
+        body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: white; text-align: center; padding: 20px; }
+        .container { max-width: 600px; margin: auto; background: #1e293b; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        input { width: 90%; padding: 15px; border-radius: 10px; border: none; margin-bottom: 20px; font-size: 16px; background: #334155; color: white; }
+        button { background: #3b82f6; color: white; border: none; padding: 15px 30px; border-radius: 10px; cursor: pointer; font-weight: bold; transition: 0.3s; width: 100%; }
+        button:hover { background: #2563eb; }
+        button:disabled { background: #64748b; cursor: not-allowed; }
+        #output-section { margin-top: 30px; display: none; }
+        #resultImage { width: 100%; border-radius: 15px; border: 3px solid #3b82f6; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .loader { display: none; margin: 20px 0; color: #60a5fa; font-style: italic; }
+        .download-btn { background: #10b981; margin-top: 15px; display: inline-block; text-decoration: none; padding: 12px; border-radius: 10px; color: white; width: 90%; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h2>Wan 2.1 AI Cartoon Maker</h2>
-        <p>আপনার কার্টুন আইডিয়াটি নিচে লিখুন:</p>
+        <h2>🎨 AI Cartoon Maker</h2>
+        <p>আপনার আইডিয়াটি ইংরেজিতে লিখুন:</p>
         
-        <input type="text" id="promptInput" placeholder="যেমন: A funny monkey dancing, 3D cartoon style...">
-        <br>
-        <button id="generateBtn">ভিডিও তৈরি করুন</button>
+        <input type="text" id="promptInput" placeholder="যেমন: A cute robot in a forest, 3d cartoon...">
+        <button id="generateBtn">কার্টুন তৈরি করুন</button>
 
-        <div class="loading" id="loader">এআই আপনার ভিডিওটি তৈরি করছে... (১-২ মিনিট সময় লাগতে পারে)</div>
+        <div class="loader" id="loader">✨ এআই আপনার কার্টুনটি তৈরি করছে... ১০ সেকেন্ড অপেক্ষা করুন।</div>
 
-        <div id="video-output">
-            <h3>আপনার ভিডিও তৈরি:</h3>
-            <video id="resultVideo" controls></video>
-            <br><br>
-            <a id="downloadBtn" href="#" download="cartoon_video.mp4">
-                <button style="background: #0f3460;">ডাউনলোড করুন</button>
-            </a>
+        <div id="output-section">
+            <h3>আপনার রেজাল্ট:</h3>
+            <img id="resultImage" src="" alt="AI Cartoon">
+            <a id="downloadLink" href="#" download="my_cartoon.png" class="download-btn">📥 ডাউনলোড করুন</a>
         </div>
     </div>
 
     <script>
+        const generateBtn = document.getElementById('generateBtn');
+        const loader = document.getElementById('loader');
+        const outputSection = document.getElementById('output-section');
+        const resultImage = document.getElementById('resultImage');
+        const downloadLink = document.getElementById('downloadLink');
+
         generateBtn.addEventListener('click', async () => {
-    const prompt = document.getElementById('promptInput').value;
-    if (!prompt) return alert("কিছু লিখুন!");
+            const prompt = document.getElementById('promptInput').value;
+            if (!prompt) return alert("দয়া করে কিছু লিখুন!");
 
-    loader.style.display = "block";
-    generateBtn.disabled = true;
-    outputDiv.style.display = "none";
+            // UI আপডেট
+            loader.style.display = "block";
+            generateBtn.disabled = true;
+            generateBtn.innerText = "প্রসেসিং...";
+            outputSection.style.display = "none";
 
-    try {
-        // সরাসরি HF কল না করে আমাদের /api/generate কল করছি
-        const response = await fetch("/api/generate", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ prompt: prompt })
+            try {
+                const response = await fetch("/api/generate", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ prompt: prompt })
+                });
+
+                if (!response.ok) throw new Error("সার্ভার রেসপন্স দিচ্ছে না। আবার চেষ্টা করুন।");
+
+                const blob = await response.blob();
+                const imageUrl = URL.createObjectURL(blob);
+
+                resultImage.src = imageUrl;
+                downloadLink.href = imageUrl;
+                outputSection.style.display = "block";
+
+            } catch (error) {
+                alert("এরর: " + error.message);
+            } finally {
+                loader.style.display = "none";
+                generateBtn.disabled = false;
+                generateBtn.innerText = "কার্টুন তৈরি করুন";
+            }
         });
-
-        if (!response.ok) throw new Error("ভিডিও তৈরি করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।");
-
-        const blob = await response.blob();
-        const videoUrl = URL.createObjectURL(blob);
-
-        videoPlayer.src = videoUrl;
-        downloadBtn.href = videoUrl;
-        outputDiv.style.display = "block";
-
-    } catch (error) {
-        alert(error.message);
-    } finally {
-        loader.style.display = "none";
-        generateBtn.disabled = false;
-    }
-});
     </script>
 </body>
-  </html>
+</html>
