@@ -21,12 +21,12 @@
 
     <div class="container">
         <h2>🎨 AI Cartoon Maker</h2>
-        <p>আপনার আইডিয়াটি ইংরেজিতে লিখুন:</p>
+        <p>আপনার আইডিয়াটি ইংরেজিতে লিখুন:</p>
         
         <input type="text" id="promptInput" placeholder="যেমন: A cute robot in a forest, 3d cartoon...">
         <button id="generateBtn">কার্টুন তৈরি করুন</button>
 
-        <div class="loader" id="loader">✨ এআই আপনার কার্টুনটি তৈরি করছে... ১০ সেকেন্ড অপেক্ষা করুন।</div>
+        <div class="loader" id="loader">✨ এআই আপনার কার্টুনটি তৈরি করছে... ১০-২০ সেকেন্ড অপেক্ষা করুন।</div>
 
         <div id="output-section">
             <h3>আপনার রেজাল্ট:</h3>
@@ -44,38 +44,40 @@
 
         generateBtn.addEventListener('click', async () => {
             const prompt = document.getElementById('promptInput').value;
-            if (!prompt) return alert("দয়া করে কিছু লিখুন!");
+            if (!prompt) return alert("দয়া করে কিছু লিখুন!");
 
-            // UI আপডেট
             loader.style.display = "block";
             generateBtn.disabled = true;
             generateBtn.innerText = "প্রসেসিং...";
             outputSection.style.display = "none";
 
             try {
-                // index.html এর স্ক্রিপ্ট অংশে এটি আপডেট করুন
-const response = await fetch("/api/generate", {
-    method: "POST",
-    headers: { 
-        "Content-Type": "application/json",
-        "Accept": "application/json" 
-    },
-    body: JSON.stringify({ prompt: prompt })
-});
+                // আমরা এখন আমাদের নিজস্ব এপিআই রুট ব্যবহার করছি
+                const response = await fetch("/api/generate", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ prompt: prompt })
                 });
 
-                if (!response.ok) throw new Error("সার্ভার রেসপন্স দিচ্ছে না। আবার চেষ্টা করুন।");
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error("সার্ভার এরর: " + errorText);
+                }
 
                 const blob = await response.blob();
                 const imageUrl = URL.createObjectURL(blob);
 
                 resultImage.src = imageUrl;
+                resultImage.onload = () => {
+                    outputSection.style.display = "block";
+                    loader.style.display = "none";
+                    generateBtn.disabled = false;
+                    generateBtn.innerText = "কার্টুন তৈরি করুন";
+                };
                 downloadLink.href = imageUrl;
-                outputSection.style.display = "block";
 
             } catch (error) {
                 alert("এরর: " + error.message);
-            } finally {
                 loader.style.display = "none";
                 generateBtn.disabled = false;
                 generateBtn.innerText = "কার্টুন তৈরি করুন";
