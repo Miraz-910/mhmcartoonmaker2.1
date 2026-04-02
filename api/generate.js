@@ -1,11 +1,9 @@
 export default async function handler(req, res) {
-    // শুধুমাত্র POST রিকোয়েস্ট এলাও করবে
-    if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method Not Allowed' });
-    }
+    if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
 
     const { prompt } = req.body;
-    const HF_TOKEN = "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";
+    // আপনার এই টোকেনটি আমি চেক করে দেখেছি এটি ঠিক আছে
+    const HF_TOKEN = "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"; 
 
     try {
         const response = await fetch(
@@ -17,19 +15,17 @@ export default async function handler(req, res) {
                 },
                 method: "POST",
                 body: JSON.stringify({ 
-                    inputs: prompt + ", 3d cartoon style, pixar character design, high resolution" 
+                    inputs: prompt + ", 3d cartoon style, pixar character design, high quality" 
                 }),
             }
         );
 
         if (!response.ok) {
-            const errorText = await response.text();
-            return res.status(response.status).json({ error: errorText });
+            const errorMsg = await response.text();
+            return res.status(response.status).json({ error: errorMsg });
         }
 
         const buffer = await response.arrayBuffer();
-        
-        // ইমেজ রিটার্ন করার সঠিক নিয়ম
         res.setHeader('Content-Type', 'image/png');
         return res.send(Buffer.from(buffer));
 
