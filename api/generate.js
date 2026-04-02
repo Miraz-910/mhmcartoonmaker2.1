@@ -1,5 +1,7 @@
 export default async function handler(req, res) {
-    if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: "Method not allowed" });
+    }
 
     const { prompt } = req.body;
     const HF_TOKEN = "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"; 
@@ -19,13 +21,21 @@ export default async function handler(req, res) {
             }
         );
 
-        if (!response.ok) return res.status(response.status).send("Hugging Face API Error");
+        // যদি Hugging Face থেকে এরর আসে
+        if (!response.ok) {
+            const errorBody = await response.text();
+            console.error("HF API Error:", errorBody);
+            return res.status(response.status).json({ error: "API ব্যস্ত আছে, একটু পর চেষ্টা করুন।" });
+        }
 
         const buffer = await response.arrayBuffer();
+        
+        // ইমেজ রিটার্ন করা
         res.setHeader('Content-Type', 'image/png');
         return res.send(Buffer.from(buffer));
 
     } catch (error) {
-        return res.status(500).json({ error: error.message });
+        console.error("Vercel Function Error:", error.message);
+        return res.status(500).json({ error: "সার্ভারে সমস্যা হচ্ছে।" });
     }
 }
