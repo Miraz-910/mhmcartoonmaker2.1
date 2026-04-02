@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wan 2.1 AI Cartoon Maker</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #1a1a2e; color: white; text-align: center; padding: 20px; }
+        .container { max-width: 700px; margin: auto; background: #16213e; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        input { width: 80%; padding: 12px; border-radius: 5px; border: none; outline: none; margin-bottom: 15px; font-size: 16px; }
+        button { background: #e94560; color: white; border: none; padding: 12px 25px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        button:hover { background: #ff2e63; }
+        #video-output { margin-top: 30px; display: none; }
+        video { width: 100%; border-radius: 10px; border: 2px solid #e94560; }
+        .loading { display: none; margin-top: 20px; color: #00d2ff; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Wan 2.1 AI Cartoon Maker</h2>
+        <p>আপনার কার্টুন আইডিয়াটি নিচে লিখুন:</p>
+        
+        <input type="text" id="promptInput" placeholder="যেমন: A funny monkey dancing, 3D cartoon style...">
+        <br>
+        <button id="generateBtn">ভিডিও তৈরি করুন</button>
+
+        <div class="loading" id="loader">এআই আপনার ভিডিওটি তৈরি করছে... (১-২ মিনিট সময় লাগতে পারে)</div>
+
+        <div id="video-output">
+            <h3>আপনার ভিডিও তৈরি:</h3>
+            <video id="resultVideo" controls></video>
+            <br><br>
+            <a id="downloadBtn" href="#" download="cartoon_video.mp4">
+                <button style="background: #0f3460;">ডাউনলোড করুন</button>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // আপনার Hugging Face টোকেনটি এখানে বসান
+        const HF_TOKEN = "NEXT_PUBLIC_HF_TOKEN"; 
+
+        const generateBtn = document.getElementById('generateBtn');
+        const loader = document.getElementById('loader');
+        const outputDiv = document.getElementById('video-output');
+        const videoPlayer = document.getElementById('resultVideo');
+
+        generateBtn.addEventListener('click', async () => {
+            const prompt = document.getElementById('promptInput').value;
+
+            if (!prompt) {
+                alert("দয়া করে কিছু লিখুন!");
+                return;
+            }
+
+            // UI আপডেট
+            loader.style.display = "block";
+            generateBtn.disabled = true;
+            outputDiv.style.display = "none";
+
+            try {
+                // Wan 2.1 মডেল কল করা (সার্ভারলেস ইনফারেন্স)
+                const response = await fetch(
+                    "https://api-inference.huggingface.co/models/Wan-AI/Wan2.1-T2V-1.3B", 
+                    {
+                        headers: {
+                            Authorization: `Bearer ${HF_TOKEN}`,
+                            "Content-Type": "application/json",
+                        },
+                        method: "POST",
+                        body: JSON.stringify({ 
+                            inputs: prompt + ", cartoon style, high quality, animation, 3d render" 
+                        }),
+                    }
+                );
+
+                if (!response.ok) {
+                    const errorMsg = await response.text();
+                    throw new Error("সার্ভার ব্যস্ত বা ভুল হয়েছে। কিছুক্ষণ পর ট্রাই করুন।");
+                }
+
+                const blob = await response.blob();
+                const videoUrl = URL.createObjectURL(blob);
+
+                // রেজাল্ট দেখানো
+                videoPlayer.src = videoUrl;
+                document.getElementById('downloadBtn').href = videoUrl;
+                outputDiv.style.display = "block";
+
+            } catch (error) {
+                alert("Error: " + error.message);
+                console.error(error);
+            } finally {
+                loader.style.display = "none";
+                generateBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+  </html>
