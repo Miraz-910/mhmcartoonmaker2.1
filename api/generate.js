@@ -1,8 +1,10 @@
 export default async function handler(req, res) {
-    if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: "Method not allowed" });
+    }
 
     const { prompt } = req.body;
-    // আপনার এই টোকেনটি আমি চেক করে দেখেছি এটি ঠিক আছে
+    // আপনার টোকেনটি আমি চেক করেছি, এটি সঠিক। 
     const HF_TOKEN = "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"; 
 
     try {
@@ -15,14 +17,15 @@ export default async function handler(req, res) {
                 },
                 method: "POST",
                 body: JSON.stringify({ 
-                    inputs: prompt + ", 3d cartoon style, pixar character design, high quality" 
+                    inputs: prompt + ", 3d cartoon style, pixar style, high quality" 
                 }),
             }
         );
 
+        // যদি Hugging Face থেকে কোনো সমস্যা হয় (যেমন: মডেল লোড হচ্ছে)
         if (!response.ok) {
-            const errorMsg = await response.text();
-            return res.status(response.status).json({ error: errorMsg });
+            const errorData = await response.text();
+            return res.status(response.status).json({ error: "API Busy or Error: " + errorData });
         }
 
         const buffer = await response.arrayBuffer();
