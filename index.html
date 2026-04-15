@@ -3,86 +3,195 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Cartoon Maker - Miraz</title>
+    <title>তোমার শহর | M.H Miraz</title>
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #0f172a; color: white; text-align: center; padding: 20px; }
-        .container { max-width: 600px; margin: auto; background: #1e293b; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        input { width: 90%; padding: 15px; border-radius: 10px; border: none; margin-bottom: 20px; font-size: 16px; background: #334155; color: white; }
-        button { background: #3b82f6; color: white; border: none; padding: 15px 30px; border-radius: 10px; cursor: pointer; font-weight: bold; transition: 0.3s; width: 100%; }
-        button:hover { background: #2563eb; }
-        button:disabled { background: #64748b; cursor: not-allowed; }
-        #output-section { margin-top: 30px; display: none; }
-        #resultImage { width: 100%; border-radius: 15px; border: 3px solid #3b82f6; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
-        .loader { display: none; margin: 20px 0; color: #60a5fa; font-style: italic; }
-        .download-btn { background: #10b981; margin-top: 15px; display: inline-block; text-decoration: none; padding: 12px; border-radius: 10px; color: white; width: 90%; }
+        :root {
+            --pink-light: #ffcad4;
+            --pink-dark: #f72585;
+            --bg-dark: #0a0a0a;
+            --white: #ffffff;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            perspective: 3000px;
+            font-family: 'Hind Siliguri', sans-serif;
+            overflow: hidden;
+        }
+
+        /* ডেকোরেশন */
+        .decoration {
+            position: absolute;
+            opacity: 0.15;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .book {
+            width: 380px; /* ডায়েরি কিছুটা চওড়া করা হয়েছে */
+            height: 580px;
+            position: relative;
+            transform-style: preserve-3d;
+            z-index: 10;
+        }
+
+        .page {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            background: #fff;
+            border-radius: 0 20px 20px 0;
+            transform-origin: left;
+            transform-style: preserve-3d;
+            transition: transform 1.8s cubic-bezier(0.645, 0.045, 0.355, 1);
+            cursor: pointer;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            backface-visibility: hidden;
+            box-shadow: inset 10px 0 20px rgba(0,0,0,0.1), 15px 15px 35px rgba(0,0,0,0.5);
+        }
+
+        .page.flipped { transform: rotateY(-175deg); }
+
+        /* বড় ও সুন্দর ফটো ফ্রেম */
+        .photo-frame {
+            width: 100%;
+            height: 400px; /* ফ্রেমের উচ্চতা বাড়ানো হয়েছে */
+            background: var(--white);
+            padding: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            border: 1px solid #eee;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .photo-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* ছবি পুরো ফ্রেম জুড়ে থাকবে */
+            border-radius: 3px;
+        }
+
+        .page p {
+            color: #222;
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin: 5px 0;
+            line-height: 1.4;
+        }
+
+        /* কভার পেজ - তোমার শহর */
+        .cover {
+            background: linear-gradient(135deg, #f72585 0%, #7209b7 100%) !important;
+            z-index: 100 !important;
+            justify-content: center;
+            border: none;
+        }
+
+        .cover h1 {
+            color: white;
+            font-size: 3.5rem;
+            margin: 0;
+            text-shadow: 3px 6px 15px rgba(0,0,0,0.4);
+            font-weight: 700;
+        }
+
+        .cover .subtitle {
+            color: rgba(255,255,255,0.8);
+            font-size: 1rem;
+            margin-top: 20px;
+            letter-spacing: 2px;
+        }
+
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h2>🎨 AI Cartoon Maker</h2>
-        <p>আপনার আইডিয়াটি ইংরেজিতে লিখুন:</p>
-        
-        <input type="text" id="promptInput" placeholder="যেমন: A cute robot in a forest, 3d cartoon...">
-        <button id="generateBtn">কার্টুন তৈরি করুন</button>
+    <div class="decoration" style="top:5%; left:10%; font-size: 60px;">🌸</div>
+    <div class="decoration" style="bottom:10%; right:15%; font-size: 80px;">🌿</div>
 
-        <div class="loader" id="loader">✨ এআই আপনার কার্টুনটি তৈরি করছে... ১০-২০ সেকেন্ড অপেক্ষা করুন।</div>
+    <audio id="bgMusic" loop preload="auto">
+        <source src="music.mp3" type="audio/mpeg">
+    </audio>
 
-        <div id="output-section">
-            <h3>আপনার রেজাল্ট:</h3>
-            <img id="resultImage" src="" alt="AI Cartoon">
-            <a id="downloadLink" href="#" download="my_cartoon.png" class="download-btn">📥 ডাউনলোড করুন</a>
+    <div class="book" id="book">
+        <div class="page cover" onclick="openBook(this)">
+            <h1>তোমার শহর</h1>
+            <div class="subtitle">খুলে দেখো...</div>
+            <p style="position:absolute; bottom:30px; color:rgba(255,255,255,0.6); font-size:14px;">Designed by M.H Miraz</p>
         </div>
     </div>
 
     <script>
-        const generateBtn = document.getElementById('generateBtn');
-        const loader = document.getElementById('loader');
-        const outputSection = document.getElementById('output-section');
-        const resultImage = document.getElementById('resultImage');
-        const downloadLink = document.getElementById('downloadLink');
+        const messages = [
+            "এই শহরের সবচেয়ে সুন্দর হাসিটা তোমার। 🌸",
+            "সব মেঘ কেটে গিয়ে আবার রোদ উঠবে। ✨",
+            "রাগ করলে তোমাকে জাস্ট ওসাম লাগে! 😇",
+            "ব্রেকআপ মানে নতুন একটা গল্পের শুরু। 🌱",
+            "তুমি জানো কি? তোমার মনটা খুব স্বচ্ছ।",
+            "একটু হাসো তো, তোমার হাসিটা আমার প্রিয়।",
+            "জীবনটা অনেক বড়, থমকে যেও না। 🌈",
+            "আমি সবসময় তোমার পাহারাদার হয়ে আছি। 💂‍♂️",
+            "তুমি নিজের কাছে নিজে হিরোইন, মনে রেখো।",
+            "মন খারাপের রাতে আমি আছি তোমার পাশে।",
+            "সবাই চলে গেলেও এই ছোট ভাইটা হারাবে না।",
+            "নিজের খুশির জন্য বাঁচো। 💖",
+            "পুরানো স্মৃতি ভুলে যাও, নতুন দিন ডাকছে।",
+            "আজকের কষ্টটাই কাল তোমার শক্তি হবে।",
+            "Smile please! তোমার হাসিই আমার শান্তি। 😊",
+            "তুমি অনন্য, নিজেকে কখনো ছোট ভেবো না।",
+            "ভুলে যাও তাকে, যে তোমার কদর বোঝেনি।",
+            "এই পাতাগুলো শুধু তোমার হাসির জন্য।",
+            "তুমি স্পেশাল ছিলে, আছো আর থাকবে।",
+            "সবসময় এভাবেই থেকো, নিজের মতো। ❤️"
+        ];
 
-        generateBtn.addEventListener('click', async () => {
-            const prompt = document.getElementById('promptInput').value;
-            if (!prompt) return alert("দয়া করে কিছু লিখুন!");
+        const book = document.getElementById('book');
 
-            loader.style.display = "block";
-            generateBtn.disabled = true;
-            generateBtn.innerText = "প্রসেসিং...";
-            outputSection.style.display = "none";
+        // ২০টি পাতা তৈরি
+        for (let i = 0; i < 20; i++) {
+            const page = document.createElement('div');
+            page.className = 'page';
+            page.style.zIndex = 20 - i;
+            
+            page.innerHTML = `
+                <div class="photo-frame">
+                    <img src="img${i+1}.jpg" alt="Memory ${i+1}">
+                </div>
+                <p>${messages[i]}</p>
+                <div style="position:absolute; bottom:15px; right:20px; color:#bbb; font-size:12px;">${i+1}/20</div>
+            `;
+            
+            page.onclick = function() { flipPage(this); };
+            book.appendChild(page);
+        }
 
-            try {
-                // আমরা এখন আমাদের নিজস্ব এপিআই রুট ব্যবহার করছি
-                const response = await fetch("/api/generate", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ prompt: prompt })
-                });
+        function openBook(el) {
+            // কভার খুললেই গান শুরু হবে
+            const music = document.getElementById('bgMusic');
+            music.play().catch(e => console.log("Music play failed:", e));
+            flipPage(el);
+        }
 
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error("সার্ভার এরর: " + errorText);
-                }
-
-                const blob = await response.blob();
-                const imageUrl = URL.createObjectURL(blob);
-
-                resultImage.src = imageUrl;
-                resultImage.onload = () => {
-                    outputSection.style.display = "block";
-                    loader.style.display = "none";
-                    generateBtn.disabled = false;
-                    generateBtn.innerText = "কার্টুন তৈরি করুন";
-                };
-                downloadLink.href = imageUrl;
-
-            } catch (error) {
-                alert("এরর: " + error.message);
-                loader.style.display = "none";
-                generateBtn.disabled = false;
-                generateBtn.innerText = "কার্টুন তৈরি করুন";
+        function flipPage(el) {
+            el.classList.toggle('flipped');
+            if(el.classList.contains('flipped')) {
+                setTimeout(() => { el.style.zIndex = 1; }, 800);
             }
-        });
+        }
     </script>
 </body>
 </html>
